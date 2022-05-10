@@ -56,30 +56,33 @@ public sealed class PipeStreamWriter : IDisposable
     /// Writes an object to the pipe.
     /// </summary>
     /// <param name="buffer">Object to write to the pipe</param>
+    /// <param name="offset">The start of the message in the byte array</param>
+    /// <param name="length">The length of the message</param>
     /// <param name="cancellationToken"></param>
-    public async Task WriteAsync(byte[] buffer, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(byte[] buffer, int offset, int length, CancellationToken cancellationToken = default)
     {
         buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
+
+        // Buffer might be non-null and zero-length (eg. zero-length array)
+        if (offset < 0 || (buffer.Length > 0 && offset >= buffer.Length))
+            throw new ArgumentOutOfRangeException(nameof(offset));
+
+        if (length < 0 || offset + length > buffer.Length)
+            throw new ArgumentOutOfRangeException(nameof(length));
 
         try
         {
             await SemaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-            await WriteLengthAsync(buffer.Length, cancellationToken).ConfigureAwait(false);
+            await WriteLengthAsync(length, cancellationToken).ConfigureAwait(false);
 
-#if NETSTANDARD2_1 || NETCOREAPP3_1_OR_GREATER
-            await BaseStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
-#elif NET461_OR_GREATER || NETSTANDARD2_0
-            await BaseStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-#else
-#error Target Framework is not supported
-#endif
+            await BaseStream.WriteAsync(buffer, offset, length, cancellationToken).ConfigureAwait(false);
 
             await BaseStream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {
-            SemaphoreSlim.Release();
+            _ = SemaphoreSlim.Release();
         }
     }
 

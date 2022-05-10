@@ -172,14 +172,23 @@ public class PipeConnection : IPipeConnection, IAsyncDisposable
     }
     
     /// <inheritdoc />
-    public async Task WriteAsync(byte[] value, CancellationToken cancellationToken = default)
+    public Task WriteAsync(byte[] value, CancellationToken cancellationToken = default)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        return WriteAsync(value, 0, value.Length, cancellationToken);
+    }
+    
+    /// <inheritdoc />
+    public async Task WriteAsync(byte[] value, int offset, int length, CancellationToken cancellationToken = default)
     {
         if (!IsConnected || !PipeStreamWrapper.CanWrite)
         {
             throw new InvalidOperationException("Client is not connected");
         }
 
-        await PipeStreamWrapper.WriteAsync(value, cancellationToken).ConfigureAwait(false);
+        await PipeStreamWrapper.WriteAsync(value, offset, length, cancellationToken).ConfigureAwait(false);
     }
     
     /// <inheritdoc />
@@ -192,7 +201,7 @@ public class PipeConnection : IPipeConnection, IAsyncDisposable
 
         var bytes = await Formatter.SerializeAsync(value, cancellationToken).ConfigureAwait(false);
 
-        await PipeStreamWrapper.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
+        await PipeStreamWrapper.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
     }
     
     /// <inheritdoc />

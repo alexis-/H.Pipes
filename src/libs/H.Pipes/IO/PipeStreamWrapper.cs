@@ -77,10 +77,12 @@ public sealed class PipeStreamWrapper : IDisposable
     /// Writes an object to the pipe.  This method blocks until all data is sent.
     /// </summary>
     /// <param name="buffer">Object to write to the pipe</param>
+    /// <param name="offset">The start of the message in the byte array</param>
+    /// <param name="length">The length of the message</param>
     /// <param name="cancellationToken"></param>
-    public async Task WriteAsync(byte[] buffer, CancellationToken cancellationToken = default)
+    public async Task WriteAsync(byte[] buffer, int offset, int length, CancellationToken cancellationToken = default)
     {
-        await Writer.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+        await Writer.WriteAsync(buffer, offset, length, cancellationToken).ConfigureAwait(false);
 
 #if NET461_OR_GREATER || NET5_0_OR_GREATER
         Writer.WaitForPipeDrain();

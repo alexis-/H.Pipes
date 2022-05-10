@@ -39,7 +39,18 @@ public interface IPipe : IAsyncDisposable
     /// <param name="value">Message to send</param>
     /// <param name="cancellationToken"></param>
     /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException">When <paramref name="value"/> is null</exception>
     Task WriteAsync(byte[] value, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a message over a named pipe. <br/>
+    /// </summary>
+    /// <param name="value">Message to send</param>
+    /// <param name="offset">The start of the message in the byte array</param>
+    /// <param name="length">The length of the message</param>
+    /// <param name="cancellationToken"></param>
+    /// <exception cref="InvalidOperationException"></exception>
+    Task WriteAsync(byte[] value, int offset, int length, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a message to all connected clients asynchronously.
@@ -47,6 +58,7 @@ public interface IPipe : IAsyncDisposable
     /// </summary>
     /// <param name="value"></param>
     /// <param name="cancellationToken"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     Task WriteAsync<T>(T value, CancellationToken cancellationToken = default);
 
     #endregion

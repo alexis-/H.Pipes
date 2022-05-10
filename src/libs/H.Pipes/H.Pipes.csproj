@@ -20,6 +20,7 @@
 - Also available ready formatters in separate nuget packages: H.Formatters.Json
 - Supports `PipeAccessRule`'s(see `H.Pipes.AccessControl` nuget package) or more complex code to access using the `PipeServer.PipeStreamInitializeAction` property
     </Description>
+    <SignAssembly>False</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">

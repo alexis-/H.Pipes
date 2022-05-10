@@ -1,4 +1,6 @@
-﻿using H.Formatters;
+﻿using System.Text;
+using H.Formatters;
+using H.Pipes.Args;
 
 namespace H.Pipes.Tests;
 
@@ -41,12 +43,10 @@ public class DataTests
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public async Task EmptyArrayParallelTest(bool useGeneric)
+    public async Task EmptyArrayParallelTest()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-        var cancellationToken = cancellationTokenSource.Token;
+        var       cancellationToken       = cancellationTokenSource.Token;
 
         const string pipeName = "data_test_pipe";
         await using var server = new SingleConnectionPipeServer<string?>(pipeName)
@@ -59,11 +59,26 @@ public class DataTests
         await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
 
         var tasks = Enumerable
-            .Range(0, 10000)
-            .Select(async _ => await client.WriteAsync(null, cancellationTokenSource.Token))
-            .ToArray();
+                    .Range(0, 10000)
+                    .Select(async _ => await client.WriteAsync(null, cancellationTokenSource.Token))
+                    .ToArray();
 
         await Task.WhenAll(tasks);
+    }
+
+    [TestMethod]
+    public async Task OffsetAndLengthTest()
+    {
+        var message       = Encoding.UTF8.GetBytes("Ground control to Major Tom");
+        int offset        = 1;
+        int length        = message.Length;
+        var paddedMessage = new byte[length + 2];
+
+        Array.Copy(message, 0, paddedMessage, offset, length);
+
+        await BaseTests.DataOffsetAndLength(
+            new List<byte[]> { paddedMessage }, offset, length,
+            b => Encoding.UTF8.GetString(b));
     }
 
     [TestMethod]

@@ -327,14 +327,23 @@ public class SingleConnectionPipeServer : IPipeServer
     }
 
     /// <inheritdoc />
-    public async Task WriteAsync(byte[] value, CancellationToken cancellationToken = default)
+    public Task WriteAsync(byte[] value, CancellationToken cancellationToken = default)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        return WriteAsync(value, 0, value.Length, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task WriteAsync(byte[] value, int offset, int length, CancellationToken cancellationToken = default)
     {
         if (Connection is not { IsConnected: true })
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        await Connection.WriteAsync(value, cancellationToken).ConfigureAwait(false);
+        return Connection.WriteAsync(value, offset, length, cancellationToken);
     }
     
     /// <inheritdoc />
@@ -344,11 +353,25 @@ public class SingleConnectionPipeServer : IPipeServer
     {
         throw new InvalidOperationException("Cannot filter connections on a single connection server.");
     }
+
+    /// <inheritdoc />
+    [Obsolete("Cannot filter connections on a single connection server.", true)]
+    public Task WriteAsync(byte[] value, int offset, int length, string pipeName, CancellationToken cancellationToken = default)
+    {
+        throw new InvalidOperationException("Cannot filter connections on a single connection server.");
+    }
     
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException"></exception>
     [Obsolete("Cannot filter connections on a single connection server.", true)]
     public Task WriteAsync(byte[] value, Predicate<IPipeConnection>? predicate, CancellationToken cancellationToken = default)
+    {
+        throw new InvalidOperationException("Cannot filter connections on a single connection server.");
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Cannot filter connections on a single connection server.", true)]
+    public Task WriteAsync(byte[] value, int offset, int length, Predicate<IPipeConnection>? predicate, CancellationToken cancellationToken = default)
     {
         throw new InvalidOperationException("Cannot filter connections on a single connection server.");
     }

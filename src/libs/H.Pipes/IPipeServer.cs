@@ -95,18 +95,40 @@ public interface IPipeServer : IPipe
     /// <summary>
     /// Sends a message to all connected clients asynchronously.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">Message to send</param>
     /// <param name="predicate"></param>
     /// <param name="cancellationToken"></param>
+    /// <exception cref="ArgumentNullException">When <paramref name="value"/> is null</exception>
     Task WriteAsync(byte[] value, Predicate<IPipeConnection>? predicate, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a message to all connected clients asynchronously.
+    /// </summary>
+    /// <param name="value">Message to send</param>
+    /// <param name="offset">The start of the message in the byte array</param>
+    /// <param name="length">The length of the message</param>
+    /// <param name="predicate"></param>
+    /// <param name="cancellationToken"></param>
+    Task WriteAsync(byte[] value, int offset, int length, Predicate<IPipeConnection>? predicate, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a message to the given client by pipe name.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">Message to send</param>
     /// <param name="pipeName"></param>
     /// <param name="cancellationToken"></param>
+    /// <exception cref="ArgumentNullException">When <paramref name="value"/> is null</exception>
     Task WriteAsync(byte[] value, string pipeName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a message to the given client by pipe name.
+    /// </summary>
+    /// <param name="value">Message to send</param>
+    /// <param name="offset">The start of the message in the byte array</param>
+    /// <param name="length">The length of the message</param>
+    /// <param name="pipeName"></param>
+    /// <param name="cancellationToken"></param>
+    Task WriteAsync(byte[] value, int offset, int length, string pipeName, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a message to all connected clients asynchronously.

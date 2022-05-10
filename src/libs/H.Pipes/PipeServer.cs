@@ -250,8 +250,9 @@ public class PipeServer : IPipeServer
 #error Target Framework is not supported
 #endif
                             {
-                                await handshakeWrapper.WriteAsync(Encoding.UTF8.GetBytes(connectionPipeName), token)
-                                    .ConfigureAwait(false);
+                                var bytes = Encoding.UTF8.GetBytes(connectionPipeName);
+
+                                await handshakeWrapper.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
                             }
                         }
                     }
@@ -345,23 +346,50 @@ public class PipeServer : IPipeServer
     }
 
     /// <inheritdoc />
-    public async Task WriteAsync(byte[] value, CancellationToken cancellationToken = default)
+    public Task WriteAsync(byte[] value, CancellationToken cancellationToken = default)
     {
-        await WriteAsync(value, predicate: null, cancellationToken).ConfigureAwait(false);
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        return WriteAsync(value, 0, value.Length, predicate: null, cancellationToken);
     }
-    
+
     /// <inheritdoc />
-    public async Task WriteAsync(byte[] value, string pipeName, CancellationToken cancellationToken = default)
+    public Task WriteAsync(byte[] value, int offset, int length, CancellationToken cancellationToken = default)
     {
-        await WriteAsync(value, connection => connection.PipeName == pipeName, cancellationToken).ConfigureAwait(false);
+        return WriteAsync(value, offset, length, predicate: null, cancellationToken);
     }
-    
+
+    /// <inheritdoc />
+    public Task WriteAsync(byte[] value, string pipeName, CancellationToken cancellationToken = default)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        return WriteAsync(value, 0, value.Length, connection => connection.PipeName == pipeName, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task WriteAsync(byte[] value, int offset, int length, string pipeName, CancellationToken cancellationToken = default)
+    {
+        return WriteAsync(value, offset, length, connection => connection.PipeName == pipeName, cancellationToken);
+    }
+
     /// <inheritdoc />
     public async Task WriteAsync(byte[] value, Predicate<IPipeConnection>? predicate, CancellationToken cancellationToken = default)
     {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        await WriteAsync(value, 0, value.Length, predicate, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async Task WriteAsync(byte[] value, int offset, int length, Predicate<IPipeConnection>? predicate, CancellationToken cancellationToken = default)
+    {
         var tasks = Connections
                     .Where(connection => connection.IsConnected && (predicate == null || predicate(connection)))
-                    .Select(connection => connection.WriteAsync(value, cancellationToken))
+                    .Select(connection => connection.WriteAsync(value, offset, length, cancellationToken))
                     .ToList();
 
         await Task.WhenAll(tasks).ConfigureAwait(false);

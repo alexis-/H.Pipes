@@ -62,9 +62,16 @@ public interface IPipeConnection
     Task StopAsync();
 
     /// <summary>Writes the specified <paramref name="value" /> and waits other end reading</summary>
-    /// <param name="value"></param>
+    /// <param name="value">Message to send</param>
     /// <param name="cancellationToken"></param>
     Task WriteAsync(byte[] value, CancellationToken cancellationToken = default);
+
+    /// <summary>Writes the specified <paramref name="value" /> and waits other end reading</summary>
+    /// <param name="value">Message to send</param>
+    /// <param name="offset">The start of the message in the byte array</param>
+    /// <param name="length">The length of the message</param>
+    /// <param name="cancellationToken"></param>
+    Task WriteAsync(byte[] value, int offset, int length, CancellationToken cancellationToken = default);
 
     /// <summary>Writes the specified <paramref name="value" /> and waits other end reading</summary>
     /// <param name="value"></param>

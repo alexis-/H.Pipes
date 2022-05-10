@@ -338,11 +338,29 @@ public class SingleConnectionPipeClient : IPipeClient
     /// <param name="value">Message to send to the server.</param>
     /// <param name="cancellationToken"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    public async Task WriteAsync(byte[] value, CancellationToken cancellationToken = default)
+    /// <exception cref="ArgumentNullException">When <paramref name="value"/> is null</exception>
+    public Task WriteAsync(byte[] value, CancellationToken cancellationToken = default)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        return WriteAsync(value, 0, value.Length, cancellationToken);
+    }
+    
+    /// <summary>
+    /// Sends a message to the server over a named pipe. <br/>
+    /// If client is not connected, <see cref="InvalidOperationException"/> is occurred
+    /// </summary>
+    /// <param name="value">Message to send to the server.</param>
+    /// <param name="offset">The start of the message in the byte array</param>
+    /// <param name="length">The length of the message</param>
+    /// <param name="cancellationToken"></param>
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task WriteAsync(byte[] value, int offset, int length, CancellationToken cancellationToken = default)
     {
         await ReconnectOrThrow(cancellationToken).ConfigureAwait(false);
 
-        await Connection!.WriteAsync(value, cancellationToken).ConfigureAwait(false);
+        await Connection!.WriteAsync(value, offset, length, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
